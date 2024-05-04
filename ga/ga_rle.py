@@ -4,10 +4,17 @@ import random
 from ga.ga import GeneticAlgorithm
 
 class GeneticAlgorithmRLE(GeneticAlgorithm):
-    def __init__(self, population_size, mutation_rate, crossover_rate, num_generations, dataset):
+    def __init__(
+        self, 
+        population_size: int,
+        mutation_rate: float,
+        crossover_rate: float,
+        num_generations: int,
+        dataset: pd.DataFrame
+    ):
         super().__init__(population_size, mutation_rate, crossover_rate, num_generations, dataset)
 
-    def initialize_population(self):
+    def initialize_population(self) -> list[list[tuple[str, int]]]:
         population = []
         num_days = len(self.dataset['flightDate'].unique())
         airports = self.dataset['startingAirport'].unique()

@@ -1,7 +1,17 @@
 from abc import ABC, abstractmethod
+from typing import List, Dict, Any
+
+import pandas as pd
 
 class GeneticAlgorithm(ABC):
-    def __init__(self, population_size, mutation_rate, crossover_rate, num_generations, dataset):
+    def __init__(
+        self, 
+        population_size: int,
+        mutation_rate: float,
+        crossover_rate: float,
+        num_generations: int,
+        dataset: pd.DataFrame
+    ):
         self.population_size = population_size
         self.mutation_rate = mutation_rate
         self.crossover_rate = crossover_rate
@@ -9,19 +19,23 @@ class GeneticAlgorithm(ABC):
         self.dataset = dataset
 
     @abstractmethod
-    def initialize_population(self):
+    def initialize_population(self) -> list[list[tuple[str, int]]]:
         pass
 
     @abstractmethod
-    def crossover(self, parent1, parent2):
+    def crossover(
+        self,
+        parent1: list[tuple[str, int]],
+        parent2: list[tuple[str, int]]
+    ) -> list[tuple[str, int]]:
         pass
 
     @abstractmethod
-    def mutate(self, individual):
+    def mutate(self, individual: list[tuple[str, int]]) -> list[tuple[str, int]]:
         pass
 
     @abstractmethod
-    def calculate_fitness(self, individual):
+    def calculate_fitness(self, individual: list[tuple[str, int]]) -> float:
         pass
 
     def evolve(self):
@@ -47,5 +61,5 @@ class GeneticAlgorithm(ABC):
         return max(population, key=self.calculate_fitness)
 
     @abstractmethod
-    def select_parent(self, population):
+    def select_parent(self, population: list[list[tuple[str, int]]]) -> list[tuple[str, int]]:
         pass
