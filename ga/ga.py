@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any
 
 import pandas as pd
 
@@ -10,12 +9,15 @@ class GeneticAlgorithm(ABC):
         mutation_rate: float,
         crossover_rate: float,
         num_generations: int,
-        dataset: pd.DataFrame
+        dataset: pd.DataFrame,
+        number_of_days: int = 45,
+        seed: int = 42
     ):
         self.population_size = population_size
         self.mutation_rate = mutation_rate
         self.crossover_rate = crossover_rate
         self.num_generations = num_generations
+        self.seed = seed
         self.dataset = dataset
 
     @abstractmethod
