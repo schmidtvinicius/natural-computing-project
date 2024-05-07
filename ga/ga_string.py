@@ -43,7 +43,7 @@ class GeneticAlgorithmString(GeneticAlgorithm):
         return population
 
 
-    def crossover(self, parent1: str, parent2: str) -> str:
+    def crossover(self, parent1: str, parent2: str) -> list[str]:
         if len(parent1) != len(parent2):
             raise RuntimeError('Parents should have the same length')
     
@@ -68,12 +68,35 @@ class GeneticAlgorithmString(GeneticAlgorithm):
         child1 = missing_cities1[len(order_parent1) - cut_point2:] + child1 + missing_cities1[:len(order_parent1) - cut_point2]
         child2 = missing_cities2[len(order_parent2) - cut_point2:] + child2 + missing_cities2[:len(order_parent2) - cut_point2]
 
+        child1 = ''.join([airport * days_parent1.get(airport) for airport in child1])
+        child2 = ''.join([airport * days_parent2.get(airport) for airport in child2])
+
         return [child1,child2]
 
 
     def mutate(self, individual: str) -> str:
-        # Placeholder for mutation method
-        pass
+        days_per_airport = Counter(Counter(re.findall('[A-Z]{3}', individual)))
+        airport_order = list(days_per_airport.keys())
+        previous_change = 0
+
+        for index, airport in enumerate(airport_order):
+            if previous_change != 0:
+                days_per_airport[airport] += previous_change
+                previous_change = 0
+                continue
+            if np.random.rand() < self.mutation_rate:
+                print(f'mutating {airport}')
+                new_days = np.random.randint(low=2,high=5)
+                while new_days == days_per_airport[airport]:
+                    new_days = np.random.randint(low=2,high=5)
+                if index == len(airport_order) - 1:
+                    days_per_airport[airport_order] += (new_days - days_per_airport[airport]) * -1
+                else:
+                    previous_change = (new_days - days_per_airport[airport]) * -1
+                days_per_airport[airport] = new_days
+
+
+        return ''.join([airport * days_per_airport.get(airport) for airport in days_per_airport.keys()])
 
 
     def calculate_fitness(self, individual: str) -> float:
