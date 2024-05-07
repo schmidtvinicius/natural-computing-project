@@ -46,10 +46,38 @@ class GeneticAlgorithmRLE(GeneticAlgorithm):
 
         return population
 
+    def crossover(self, parent1: list[tuple[str, int]], parent2: list[tuple[str, int]]) -> tuple[list[tuple[str, int]], list[tuple[str, int]]]:
+        cities1 = [city for city, _ in parent1]
+        cities2 = [city for city, _ in parent2]
 
-    def crossover(self, parent1: list[tuple[str, int]], parent2: list[tuple[str, int]]) -> list[tuple[str, int]]:
-        # Placeholder for crossover method
-        pass
+        # Get the length of the tour
+        tour_length = len(parent1)
+
+        pos1 = random.randint(0, tour_length - 1)
+        pos2 = random.randint(0, tour_length - 1)
+
+        if pos1 > pos2:
+            pos1, pos2 = pos2, pos1
+
+        child1 = cities1[pos1:pos2]
+
+        # Fill the remaining positions in the child with cities from the second parent in order of appearance
+        for city in cities1:
+            if city not in child1:
+                child1.append(city)
+        
+        child2 = cities2[pos1:pos2]
+
+        # Fill the remaining positions in the child with cities from the first parent in order of appearance
+        for city in cities1:
+            if city not in child2:
+                child2.append(city)
+
+        for i in range(tour_length):
+            child1[i] = (child1[i], parent1[i][1])
+            child2[i] = (child2[i], parent2[i][1])
+
+        return child1, child2
 
     def mutate(self, individual: list[tuple[str, int]]) -> list[tuple[str, int]]:
         # Placeholder for mutation method
