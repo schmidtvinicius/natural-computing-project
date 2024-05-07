@@ -47,7 +47,7 @@ class GeneticAlgorithm(ABC):
             next_generation = []
 
             # Elitism: Keep the best individual from the current population
-            next_generation.append(max(population, key=self.calculate_fitness))
+            next_generation.append(min(population, key=self.calculate_fitness))
 
             # Generate offspring until the new population size is reached
             while len(next_generation) < self.population_size:
