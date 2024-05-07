@@ -46,13 +46,10 @@ class GeneticAlgorithm(ABC):
         for generation in range(self.num_generations):
             next_generation = []
 
-            # Elitism: Keep the best individual from the current population
-            next_generation.append(min(population, key=self.calculate_fitness))
-
             # Generate offspring until the new population size is reached
             while len(next_generation) < self.population_size:
                 parent1 = self.select_parent(population)
-                parent2 = self.select_parent(population)
+                parent2 = self.select_parent(population, False)
                 child1, child2 = self.crossover(parent1, parent2)
                 child1 = self.mutate(child1)
                 child2 = self.mutate(child2)
@@ -64,6 +61,6 @@ class GeneticAlgorithm(ABC):
         # Return the best individual from the final population
         return min(population, key=self.calculate_fitness)
 
-    @abstractmethod
-    def select_parent(self, population: list[list[tuple[str, int]]]) -> list[tuple[str, int]]:
-        pass
+    def select_parent(self, population: list[list[tuple[str, int]]], first: bool = True) -> list[tuple[str, int]]:
+        # get best parent if first is True, else get second best parent
+        return min(population, key=self.calculate_fitness) if first else sorted(population, key=self.calculate_fitness)[1]

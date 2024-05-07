@@ -116,7 +116,3 @@ class GeneticAlgorithmRLE(GeneticAlgorithm):
             total_cost += flight_price
 
         return total_cost
-
-    def select_parent(self, population: list[list[tuple[str, int]]]) -> list[tuple[str, int]]:
-        # Placeholder for parent selection method
-        pass
