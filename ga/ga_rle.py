@@ -40,10 +40,6 @@ class GeneticAlgorithmRLE(GeneticAlgorithm):
                 tour.append((airport, day))
                 current_day = day
 
-            # Add the first day (start) and last day (return to initial airport)
-            tour.insert(0, (airports[-1], 0))  # Start at the last airport
-            tour.append((airports[-1], num_days))  # Return to the last airport
-
             population.append(tour)
 
         return population
