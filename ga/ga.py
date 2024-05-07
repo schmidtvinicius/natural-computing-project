@@ -53,14 +53,16 @@ class GeneticAlgorithm(ABC):
             while len(next_generation) < self.population_size:
                 parent1 = self.select_parent(population)
                 parent2 = self.select_parent(population)
-                offspring = self.crossover(parent1, parent2)
-                offspring = self.mutate(offspring)
-                next_generation.append(offspring)
+                child1, child2 = self.crossover(parent1, parent2)
+                child1 = self.mutate(child1)
+                child2 = self.mutate(child2)
+                next_generation.append(child1)
+                next_generation.append(child2)
 
             population = next_generation
 
         # Return the best individual from the final population
-        return max(population, key=self.calculate_fitness)
+        return min(population, key=self.calculate_fitness)
 
     @abstractmethod
     def select_parent(self, population: list[list[tuple[str, int]]]) -> list[tuple[str, int]]:
