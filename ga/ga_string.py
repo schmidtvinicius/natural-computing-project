@@ -1,7 +1,9 @@
 import pandas as pd
 import numpy as np
 import random
+import re
 
+from collections import Counter
 from ga import GeneticAlgorithm
 
 class GeneticAlgorithmString(GeneticAlgorithm):
@@ -23,28 +25,50 @@ class GeneticAlgorithmString(GeneticAlgorithm):
             seed
         )
 
-    def initialize_individual(self, airports: np.ndarray, total_days: int) -> str:
+
+    def initialize_individual(self, airports: np.ndarray, days_per_city: int) -> str:
         np.random.shuffle(airports)
-        individual = ''
-        for index, airport in enumerate(airports):
-            days = np.random.randint(low=2,high=4)
-            while(len(individual)/3 + days) > total_days:
-                if index == len(airports) - 1:
-                    days = total_days - len(individual)
-                else:
-                    days = np.random.randint(low=2,high=6)
-            individual += airport * days
-        
-        return individual
+        return ''.join([airport * days_per_city for airport in airports])
 
 
     def initialize_population(self) -> list[str]:
-        pass
+        population = []
+        total_days = len(self.dataset['flightDate'].unique())
+        airports = self.dataset['startingAirport'].unique()
+        days_per_city = int(total_days/len(airports))
+
+        for _ in np.arange(self.population_size):
+            population.append(self.initialize_individual(np.copy(airports), days_per_city))
+        
+        return population
 
 
     def crossover(self, parent1: str, parent2: str) -> str:
-        # Placeholder for crossover method
-        pass
+        if len(parent1) != len(parent2):
+            raise RuntimeError('Parents should have the same length')
+    
+
+        days_parent1 = Counter(re.findall('[A-Z]{3}', parent1))
+        days_parent2 = Counter(re.findall('[A-Z]{3}', parent2))
+        order_parent1 = list(days_parent1.keys())
+        order_parent2 = list(days_parent2.keys())
+
+        cut_point1 = np.random.randint(low=0,high=len(order_parent1) - 1)
+        cut_point2 = np.random.randint(low=0,high=len(order_parent1) - 1)
+
+        if cut_point1 > cut_point2:
+            cut_point1, cut_point2 = cut_point2, cut_point1
+
+        child1 = order_parent1[cut_point1:cut_point2]
+        child2 = order_parent2[cut_point1:cut_point2]
+
+        missing_cities1 = list(set(order_parent2) - set(child1))
+        missing_cities2 = list(set(order_parent1) - set(child2))
+
+        child1 = missing_cities1[len(order_parent1) - cut_point2:] + child1 + missing_cities1[:len(order_parent1) - cut_point2]
+        child2 = missing_cities2[len(order_parent2) - cut_point2:] + child2 + missing_cities2[:len(order_parent2) - cut_point2]
+
+        return [child1,child2]
 
 
     def mutate(self, individual: str) -> str:
@@ -53,10 +77,10 @@ class GeneticAlgorithmString(GeneticAlgorithm):
 
 
     def calculate_fitness(self, individual: str) -> float:
-        # Placeholder for fitness calculation method
+        
         pass
 
 
     def select_parent(self, population: list[str]) -> str:
-        # Placeholder for parent selection method
+        
         pass
