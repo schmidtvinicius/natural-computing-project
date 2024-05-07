@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+import numpy as np
 import pandas as pd
 import random
 
@@ -54,8 +56,38 @@ class GeneticAlgorithmRLE(GeneticAlgorithm):
         pass
 
     def calculate_fitness(self, individual: list[tuple[str, int]]) -> float:
-        # Placeholder for fitness calculation method
-        pass
+        total_cost = 0
+        first_day = self.dataset['flightDate'].min()
+
+        for i in range(1, len(individual)):
+            start_city, start_day = individual[i-1]
+            end_city, end_day = individual[i]
+
+            # Check if the traveler stays less than one day in a city (except for the last city)
+            if i < len(individual) - 2 and end_day - start_day <= 0:
+                print('error 1')
+                return np.inf
+
+            # Check if a flight from start_city to end_city on end_day exists
+            flight_exists = self.dataset[
+                (self.dataset['startingAirport'] == start_city) &
+                (self.dataset['destinationAirport'] == end_city) &
+                (self.dataset['flightDate'] == (datetime.strptime(first_day, '%Y-%m-%d') + timedelta(days=start_day)).strftime('%Y-%m-%d'))
+            ].shape[0] > 0
+
+            if not flight_exists:
+                return np.inf
+
+            # Get the price of the flight
+            flight_price = self.dataset[
+                (self.dataset['startingAirport'] == start_city) &
+                (self.dataset['destinationAirport'] == end_city) &
+                (self.dataset['flightDate'] == (datetime.strptime(first_day, '%Y-%m-%d') + timedelta(days=start_day)).strftime('%Y-%m-%d'))
+            ]['totalFare'].values[0]
+
+            total_cost += flight_price
+
+        return total_cost
 
     def select_parent(self, population: list[list[tuple[str, int]]]) -> list[tuple[str, int]]:
         # Placeholder for parent selection method
