@@ -29,7 +29,7 @@ class GeneticAlgorithm(ABC):
         self,
         parent1: list[tuple[str, int]],
         parent2: list[tuple[str, int]]
-    ) -> list[tuple[str, int]]:
+    ) -> tuple[list[tuple[str, int]], list[tuple[str, int]]]:
         pass
 
     @abstractmethod
