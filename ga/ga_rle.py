@@ -53,26 +53,42 @@ class GeneticAlgorithmRLE(GeneticAlgorithm):
         # Get the length of the tour
         tour_length = len(parent1)
 
+        # Get positions to perform crossover
         pos1 = random.randint(0, tour_length - 1)
         pos2 = random.randint(0, tour_length - 1)
 
         if pos1 > pos2:
             pos1, pos2 = pos2, pos1
 
-        child1 = cities1[pos1:pos2]
+        # generates first child
+        child1 = cities1.copy()
+        child1_parent1 = cities1[pos1:pos2] # get the cities from parent1 to be inserted in child1
+        diff_parent2 = [city for city in cities2 if city not in child1_parent1] # get the cities from parent2 that are not in child1_parent1
 
-        # Fill the remaining positions in the child with cities from the second parent in order of appearance
-        for city in cities1:
-            if city not in child1:
-                child1.append(city)
-        
-        child2 = cities2[pos1:pos2]
+        # insert the cities from parent2 that are not in child1_parent1
+        idx_parent2 = 0
+        for i in range(0,pos1):
+            child1[i] = diff_parent2[idx_parent2]
+            idx_parent2 += 1
+        for i in range(pos2, tour_length):
+            child1[i] = diff_parent2[idx_parent2]
+            idx_parent2 += 1
 
-        # Fill the remaining positions in the child with cities from the first parent in order of appearance
-        for city in cities1:
-            if city not in child2:
-                child2.append(city)
+        # generates second child
+        child2 = cities2.copy()
+        child2_parent2 = cities2[pos1:pos2] # get the cities from parent2 to be inserted in child2
+        diff_parent1 = [city for city in cities1 if city not in child2_parent2] # get the cities from parent1 that are not in child2_parent2
 
+        # insert the cities from parent1 that are not in child2_parent2
+        idx_parent1 = 0
+        for i in range(0,pos1):
+            child2[i] = diff_parent1[idx_parent1]
+            idx_parent1 += 1
+        for i in range(pos2, tour_length):
+            child2[i] = diff_parent1[idx_parent1]
+            idx_parent1 += 1
+
+        # Replace the cities with the cities and days
         for i in range(tour_length):
             child1[i] = (child1[i], parent1[i][1])
             child2[i] = (child2[i], parent2[i][1])
