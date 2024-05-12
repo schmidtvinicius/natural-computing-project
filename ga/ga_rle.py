@@ -10,7 +10,6 @@ class GeneticAlgorithmRLE(GeneticAlgorithm):
         self, 
         population_size: int,
         mutation_rate: float,
-        crossover_rate: float,
         num_generations: int,
         dataset: pd.DataFrame,
         seed: int = 42
@@ -18,7 +17,6 @@ class GeneticAlgorithmRLE(GeneticAlgorithm):
         super().__init__(
             population_size,
             mutation_rate,
-            crossover_rate,
             num_generations,
             dataset, 
             seed
@@ -29,6 +27,8 @@ class GeneticAlgorithmRLE(GeneticAlgorithm):
         num_days = len(self.dataset['flightDate'].unique())
         airports = self.dataset['startingAirport'].unique()
 
+        days_per_city = num_days // len(airports)
+
         for _ in range(self.population_size):
             tour = []
             current_day = 0
@@ -38,7 +38,7 @@ class GeneticAlgorithmRLE(GeneticAlgorithm):
 
             for airport in airports:
                 # Select a random day for each airport within the valid range
-                day = random.randint(current_day + 1, num_days) if current_day < num_days else current_day
+                day = random.randint(current_day + 1, current_day + days_per_city) if current_day < num_days else current_day
                 tour.append((airport, day))
                 current_day = day
 
