@@ -109,8 +109,6 @@ class GeneticAlgorithmRLE(GeneticAlgorithm):
                 # Update the city
                 individual[i] = (city, day)
 
-                print('mutation', individual[i])
-
             # Update the minimum and maximum day for the next city
             min_day = day
             if i < len(individual) - 1:
@@ -128,7 +126,6 @@ class GeneticAlgorithmRLE(GeneticAlgorithm):
 
             # Check if the traveler stays less than one day in a city (except for the last city)
             if i < len(individual) - 2 and end_day - start_day <= 0:
-                print('error 1')
                 return np.inf
 
             # Check if a flight from start_city to end_city on end_day exists
