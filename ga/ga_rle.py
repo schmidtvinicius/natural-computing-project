@@ -96,8 +96,27 @@ class GeneticAlgorithmRLE(GeneticAlgorithm):
         return child1, child2
 
     def mutate(self, individual: list[tuple[str, int]]) -> list[tuple[str, int]]:
-        # Placeholder for mutation method
-        pass
+        min_day = 1
+        max_day = individual[1][1]
+        for i in range(len(individual)):
+            # Get the current city and day
+            city, day = individual[i]
+            
+            if random.random() < self.mutation_rate:
+                # Generate a new day
+                day = random.randint(min_day, max_day)
+ 
+                # Update the city
+                individual[i] = (city, day)
+
+                print('mutation', individual[i])
+
+            # Update the minimum and maximum day for the next city
+            min_day = day
+            if i < len(individual) - 1:
+                max_day = individual[i+1][1]
+
+        return individual
 
     def calculate_fitness(self, individual: list[tuple[str, int]]) -> float:
         total_cost = 0
