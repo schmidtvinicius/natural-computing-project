@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 import pandas as pd
+import tqdm
 
 class GeneticAlgorithm(ABC):
     def __init__(
@@ -40,10 +41,10 @@ class GeneticAlgorithm(ABC):
     def calculate_fitness(self, individual: list[tuple[str, int]]) -> float:
         pass
 
-    def evolve(self):
+    def evolve(self, verbose: bool = False) -> list[tuple[str, int]]:
         population = self.initialize_population()
 
-        for generation in range(self.num_generations):
+        for generation in range(self.num_generations) if not verbose else tqdm.tqdm(range(self.num_generations)):
             next_generation = []
 
             # Generate offspring until the new population size is reached
@@ -57,6 +58,10 @@ class GeneticAlgorithm(ABC):
                 next_generation.append(child2)
 
             population = next_generation
+
+            # print best fitness in the current generation
+            if verbose:
+                print(f'Generation {generation + 1} best fitness score: {self.calculate_fitness(min(population, key=self.calculate_fitness))}')
 
         # Return the best individual from the final population
         return min(population, key=self.calculate_fitness)
