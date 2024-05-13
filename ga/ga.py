@@ -1,21 +1,20 @@
 from abc import ABC, abstractmethod
 
+import matplotlib.pyplot as plt
 import pandas as pd
+import tqdm
 
 class GeneticAlgorithm(ABC):
     def __init__(
         self, 
         population_size: int,
         mutation_rate: float,
-        crossover_rate: float,
         num_generations: int,
         dataset: pd.DataFrame,
-        number_of_days: int = 45,
         seed: int = 42
     ):
         self.population_size = population_size
         self.mutation_rate = mutation_rate
-        self.crossover_rate = crossover_rate
         self.num_generations = num_generations
         self.seed = seed
         self.dataset = dataset
@@ -29,7 +28,7 @@ class GeneticAlgorithm(ABC):
         self,
         parent1: list[tuple[str, int]],
         parent2: list[tuple[str, int]]
-    ) -> list[tuple[str, int]]:
+    ) -> tuple[list[tuple[str, int]], list[tuple[str, int]]]:
         pass
 
     @abstractmethod
@@ -40,28 +39,54 @@ class GeneticAlgorithm(ABC):
     def calculate_fitness(self, individual: list[tuple[str, int]]) -> float:
         pass
 
-    def evolve(self):
+    def evolve(
+        self,
+        verbose: bool = False,
+        plot_generations: bool = False,
+        return_generations_scores: bool = False
+    ) -> list[tuple[str, int]] | tuple[list[tuple[str, int]], list[float]]:
         population = self.initialize_population()
 
-        for generation in range(self.num_generations):
-            next_generation = []
+        if plot_generations or return_generations_scores:
+            best_scores = []
 
-            # Elitism: Keep the best individual from the current population
-            next_generation.append(max(population, key=self.calculate_fitness))
+        for generation in range(self.num_generations) if not verbose else tqdm.tqdm(range(self.num_generations)):
+            next_generation = []
 
             # Generate offspring until the new population size is reached
             while len(next_generation) < self.population_size:
                 parent1 = self.select_parent(population)
-                parent2 = self.select_parent(population)
-                offspring = self.crossover(parent1, parent2)
-                offspring = self.mutate(offspring)
-                next_generation.append(offspring)
+                parent2 = self.select_parent(population, False)
+                child1, child2 = self.crossover(parent1, parent2)
+                child1 = self.mutate(child1)
+                child2 = self.mutate(child2)
+                next_generation.append(child1)
+                next_generation.append(child2)
 
             population = next_generation
 
-        # Return the best individual from the final population
-        return max(population, key=self.calculate_fitness)
+            # print best fitness in the current generation
+            if verbose:
+                print(f'Generation {generation + 1} best fitness score: {self.calculate_fitness(min(population, key=self.calculate_fitness))}')
 
-    @abstractmethod
-    def select_parent(self, population: list[list[tuple[str, int]]]) -> list[tuple[str, int]]:
-        pass
+            if plot_generations or return_generations_scores:
+                best_scores.append(self.calculate_fitness(min(population, key=self.calculate_fitness)))
+
+        if plot_generations:
+            self.plot_evolution(best_scores)
+
+        if return_generations_scores:
+            return min(population, key=self.calculate_fitness), best_scores
+        return min(population, key=self.calculate_fitness)
+
+    def select_parent(self, population: list[list[tuple[str, int]]], first: bool = True) -> list[tuple[str, int]]:
+        # get best parent if first is True, else get second best parent
+        return min(population, key=self.calculate_fitness) if first else sorted(population, key=self.calculate_fitness)[1]
+    
+    def plot_evolution(self, best_scores: list[float]) -> None:
+
+        plt.plot(best_scores)
+        plt.xlabel('Generation')
+        plt.ylabel('Fitness Score')
+        plt.title('Fitness Score over Generations')
+        plt.savefig('fitness_score.png')
