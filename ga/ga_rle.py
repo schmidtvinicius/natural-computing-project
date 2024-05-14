@@ -38,7 +38,7 @@ class GeneticAlgorithmRLE(GeneticAlgorithm):
 
             for airport in airports:
                 # Select a random day for each airport within the valid range
-                day = random.randint(current_day + 1, current_day + days_per_city) if current_day < num_days else current_day
+                day = current_day + random.randint(2, 5) if current_day < num_days else current_day
                 tour.append((airport, day))
                 current_day = day
 
@@ -104,7 +104,10 @@ class GeneticAlgorithmRLE(GeneticAlgorithm):
             
             if random.random() < self.mutation_rate:
                 # Generate a new day
-                day = random.randint(min_day, max_day)
+                if max_day == len(self.dataset['flightDate'].unique()) - 1:
+                    day = max_day
+                else:
+                    day = random.randint(min_day, max_day if max_day < len(self.dataset['flightDate'].unique()) else len(self.dataset['flightDate'].unique()) - 1)
  
                 # Update the city
                 individual[i] = (city, day)
@@ -112,7 +115,7 @@ class GeneticAlgorithmRLE(GeneticAlgorithm):
             # Update the minimum and maximum day for the next city
             min_day = day
             if i < len(individual) - 1:
-                max_day = individual[i+1][1]
+                max_day = individual[i+1][1] if individual[i+1][1] < len(self.dataset['flightDate'].unique()) else len(self.dataset['flightDate'].unique()) - 1
 
         return individual
 
