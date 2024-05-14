@@ -78,6 +78,18 @@ class GeneticAlgorithm(ABC):
         if return_generations_scores:
             return min(population, key=self.calculate_fitness), best_scores
         return min(population, key=self.calculate_fitness)
+    
+    def multiple_runs(self, num_runs: int) -> None:
+        """"
+        Run the genetic algorithm multiple times and plot the average fitness score over generations
+        """
+        avg_best_scores = []
+        for _ in range(num_runs):
+            _, best_scores = self.evolve(verbose=True,return_generations_scores=True)
+            avg_best_scores.append(best_scores)
+        
+        avg_best_scores = [sum(x) / num_runs for x in zip(*avg_best_scores)]
+        self.plot_evolution(avg_best_scores)
 
     def select_parent(self, population: list[list[tuple[str, int]]], first: bool = True) -> list[tuple[str, int]]:
         # get best parent if first is True, else get second best parent
