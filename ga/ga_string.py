@@ -1,9 +1,11 @@
+import datetime
 import pandas as pd
 import numpy as np
 import random
 import re
 
 from collections import Counter
+from datetime import datetime, timedelta
 from ga import GeneticAlgorithm
 
 class GeneticAlgorithmString(GeneticAlgorithm):
@@ -11,34 +13,37 @@ class GeneticAlgorithmString(GeneticAlgorithm):
         self, 
         population_size: int,
         mutation_rate: float,
-        crossover_rate: float,
         num_generations: int,
         dataset: pd.DataFrame,
+        individual_length: int = 3,
         seed: int = 42
     ):
         super().__init__(
             population_size,
             mutation_rate,
-            crossover_rate,
             num_generations,
             dataset, 
             seed
         )
+        self.individual_length = individual_length
+    
 
-
-    def initialize_individual(self, airports: np.ndarray, days_per_city: int) -> str:
-        np.random.shuffle(airports)
-        return ''.join([airport * days_per_city for airport in airports])
-
+    def count_airport_frequencies(self, individual: str) -> Counter:
+        return Counter(re.findall('[A-Z]{'+ str(self.individual_length) +'}', individual))
+    
 
     def initialize_population(self) -> list[str]:
         population = []
         total_days = len(self.dataset['flightDate'].unique())
         airports = self.dataset['startingAirport'].unique()
-        days_per_city = int(total_days/len(airports))
 
         for _ in np.arange(self.population_size):
-            population.append(self.initialize_individual(np.copy(airports), days_per_city))
+            airport_order = np.copy(airports)
+            np.random.shuffle(airport_order)
+            days = np.random.randint(low=2,high=5,size=airports.size)
+            while days.sum() != total_days:
+                days = np.random.randint(low=2,high=5,size=airports.size)
+            population.append(''.join([airport * day for day, airport in zip(airport_order, days)]))
         
         return population
 
@@ -48,8 +53,8 @@ class GeneticAlgorithmString(GeneticAlgorithm):
             raise RuntimeError('Parents should have the same length')
     
 
-        days_parent1 = Counter(re.findall('[A-Z]{3}', parent1))
-        days_parent2 = Counter(re.findall('[A-Z]{3}', parent2))
+        days_parent1 = self.count_airport_frequencies(parent1)
+        days_parent2 = self.count_airport_frequencies(parent2)
         order_parent1 = list(days_parent1.keys())
         order_parent2 = list(days_parent2.keys())
 
@@ -73,37 +78,51 @@ class GeneticAlgorithmString(GeneticAlgorithm):
 
         return [child1,child2]
 
-
+    
     def mutate(self, individual: str) -> str:
-        days_per_airport = Counter(Counter(re.findall('[A-Z]{3}', individual)))
-        airport_order = list(days_per_airport.keys())
-        previous_change = 0
+        days_per_airport = self.count_airport_frequencies(individual)
+        airports = list(days_per_airport.keys())
 
-        for index, airport in enumerate(airport_order):
-            if previous_change != 0:
-                days_per_airport[airport] += previous_change
-                previous_change = 0
-                continue
+        for airport in days_per_airport.keys():
             if np.random.rand() < self.mutation_rate:
-                print(f'mutating {airport}')
-                new_days = np.random.randint(low=2,high=5)
-                while new_days == days_per_airport[airport]:
-                    new_days = np.random.randint(low=2,high=5)
-                if index == len(airport_order) - 1:
-                    days_per_airport[airport_order] += (new_days - days_per_airport[airport]) * -1
-                else:
-                    previous_change = (new_days - days_per_airport[airport]) * -1
-                days_per_airport[airport] = new_days
-
+                swap_airport = np.random.choice(airports)
+                while swap_airport == airport:
+                    swap_airport = np.random.choice(airports)
+                days_per_airport[airport], days_per_airport[swap_airport] = days_per_airport[swap_airport], days_per_airport[airport]
 
         return ''.join([airport * days_per_airport.get(airport) for airport in days_per_airport.keys()])
 
 
     def calculate_fitness(self, individual: str) -> float:
-        
-        pass
+        total_cost = 0
+        current_day = self.dataset['flightDate'].min()
+        days_per_airport = list(self.count_airport_frequencies(individual).items())
 
+        for i, (departure_city, days_spent) in enumerate(days_per_airport):
+            departure_day = (datetime.strptime(current_day, '%Y-%m-%d') + timedelta(days=days_spent)).strftime('%Y-%m-%d')
 
-    def select_parent(self, population: list[str]) -> str:
-        
-        pass
+            if i < len(days_per_airport) - 1:
+                next_city, _ = days_per_airport[i + 1]
+            else: break
+
+            # Check if a flight from start_city to next_city on next_days exists
+            flight_exists = self.dataset[
+                (self.dataset['startingAirport'] == departure_city) &
+                (self.dataset['destinationAirport'] == next_city) &
+                (self.dataset['flightDate'] == departure_day)
+            ].shape[0] > 0
+
+            if not flight_exists:
+                return np.inf
+
+            # Get the price of the flight
+            flight_price = self.dataset[
+                (self.dataset['startingAirport'] == departure_city) &
+                (self.dataset['destinationAirport'] == next_city) &
+                (self.dataset['flightDate'] == departure_day)
+            ]['totalFare'].values[0]
+
+            current_day = departure_day
+            total_cost += flight_price
+
+        return total_cost
