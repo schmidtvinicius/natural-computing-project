@@ -99,7 +99,9 @@ class GeneticAlgorithm(ABC):
         avg_best_scores = []
         for _ in range(num_runs):
             _, best_scores = self.evolve(verbose=True,return_generations_scores=True)
-            avg_best_scores.append(best_scores)
+            # check if best_scores is not np.inf before appending
+            if best_scores[-1] != float('inf'):
+                avg_best_scores.append(best_scores)
         
         avg_best_scores = [sum(x) / num_runs for x in zip(*avg_best_scores)]
         self.plot_evolution(avg_best_scores)
@@ -113,5 +115,7 @@ class GeneticAlgorithm(ABC):
         plt.plot(best_scores)
         plt.xlabel('Generation')
         plt.ylabel('Fitness Score')
+        # plot the last number of fitness score
+        plt.text(len(best_scores) - 1, best_scores[-1], f'{best_scores[-1]:.2f}', fontsize=12, ha='right')
         plt.title('Fitness Score over Generations')
         plt.savefig('fitness_score.png')
