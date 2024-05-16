@@ -15,6 +15,7 @@ class GeneticAlgorithmString(GeneticAlgorithm):
         mutation_rate: float,
         num_generations: int,
         dataset: pd.DataFrame,
+        elitism: bool = True,
         individual_length: int = 3,
         seed: int = 42
     ):
@@ -22,7 +23,8 @@ class GeneticAlgorithmString(GeneticAlgorithm):
             population_size,
             mutation_rate,
             num_generations,
-            dataset, 
+            dataset,
+            elitism,
             seed
         )
         self.individual_length = individual_length
