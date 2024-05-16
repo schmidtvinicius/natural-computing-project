@@ -12,7 +12,7 @@ class GeneticAlgorithmRLE(GeneticAlgorithm):
         mutation_rate: float,
         num_generations: int,
         dataset: pd.DataFrame,
-        elsitism: bool = True,
+        elitism: bool = True,
         seed: int = 42
     ):
         super().__init__(
@@ -20,7 +20,7 @@ class GeneticAlgorithmRLE(GeneticAlgorithm):
             mutation_rate,
             num_generations,
             dataset,
-            elsitism,
+            elitism,
             seed
         )
 
