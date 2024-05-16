@@ -11,11 +11,13 @@ class GeneticAlgorithm(ABC):
         mutation_rate: float,
         num_generations: int,
         dataset: pd.DataFrame,
+        elsitism: bool = True,
         seed: int = 42
     ):
         self.population_size = population_size
         self.mutation_rate = mutation_rate
         self.num_generations = num_generations
+        self.elsitism = elsitism
         self.seed = seed
         self.dataset = dataset
 
@@ -60,8 +62,19 @@ class GeneticAlgorithm(ABC):
                 child1, child2 = self.crossover(parent1, parent2)
                 child1 = self.mutate(child1)
                 child2 = self.mutate(child2)
-                next_generation.append(child1)
-                next_generation.append(child2)
+                # compare parent and child fitness scores
+                if self.elsitism:
+                    if self.calculate_fitness(parent1) < self.calculate_fitness(child1):
+                        next_generation.append(parent1)
+                    else:
+                        next_generation.append(child1)
+                    if self.calculate_fitness(parent2) < self.calculate_fitness(child2):
+                        next_generation.append(parent2)
+                    else:
+                        next_generation.append(child2)
+                else:
+                    next_generation.append(child1)
+                    next_generation.append(child2)
 
             population = next_generation
 
